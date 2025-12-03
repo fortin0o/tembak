@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <title>Game Shooter Sederhana</title>
+  <style>
+    /* Styling Dasar Game */
+    body { 
+        margin: 0; 
+        display: flex; 
+        justify-content: center; 
+        align-items: center; 
+        background: #111;
+        height: 100vh; 
+        font-family: sans-serif;
+    }
+    canvas { 
+        background: #eee;
+        display: block; 
+        border: 3px solid #555;
+    }
+    /* Style untuk Skor */
+    #score { 
+        position: fixed; 
+        top: 20px; 
+        left: 20px; 
+        font-size: 24px; 
+        font-weight: bold;
+        color: #ffcc00;
+        z-index: 10;
+        text-shadow: 2px 2px 3px #000;
+    }
+    /* Style untuk Nyawa */
+    #lives { 
+        position: fixed; 
+        top: 60px; /* Di bawah skor */
+        left: 20px; 
+        font-size: 24px; 
+        font-weight: bold;
+        color: #ff4444; /* Warna merah untuk nyawa */
+        z-index: 10;
+        text-shadow: 2px 2px 3px #000;
+    }
+  </style>
+</head>
+<body>
+  <div id="score">Score: 0</div>
+  <div id="lives">Lives: 3</div>
+  
+  <canvas id="game" width="1024" height="768"></canvas>
+
+  <script src="game.js"></script>
+</body>
+</html>
