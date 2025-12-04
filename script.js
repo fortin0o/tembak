@@ -6,7 +6,7 @@ const ctx = canvas.getContext('2d');
 const scoreElement = document.getElementById('score');
 let score = 0;
 const livesElement = document.getElementById('lives');
-let playerLives = 3; 
+let playerLives = 3;
 
 // --- Objek Pemain (Player) ---
 const player = {
@@ -19,219 +19,205 @@ const player = {
     invincible: false
 };
 
-let frames = 0; // Penghitung frame global
-const enemySpawnRate = 30; // ***DIUBAH: Musuh muncul setiap 30 frame (lebih banyak)***
+let frames = 0;
 
-// Menggambar pemain sebagai pesawat (segitiga)
+// Spawn musuh setiap 30 frame
+const enemySpawnRate = 30;
+
+// Gambar pemain
 function drawPlayer() {
     let currentColor = player.color;
+
     if (player.invincible && frames % 10 < 5) {
         currentColor = 'cyan';
     }
 
     ctx.fillStyle = currentColor;
     ctx.beginPath();
-    
-    // Titik A (Ujung depan Pesawat)
-    ctx.moveTo(player.x, player.y - player.height / 2); 
-    // Titik B (Sudut kiri belakang)
-    ctx.lineTo(player.x - player.width / 2, player.y + player.height / 2); 
-    // Titik C (Sudut kanan belakang)
-    ctx.lineTo(player.x + player.width / 2, player.y + player.height / 2); 
-    
+    ctx.moveTo(player.x, player.y - player.height / 2);
+    ctx.lineTo(player.x - player.width / 2, player.y + player.height / 2);
+    ctx.lineTo(player.x + player.width / 2, player.y + player.height / 2);
     ctx.closePath();
     ctx.fill();
 }
 
-// Variabel Kontrol Gerakan
+// Variabel kontrol
 let rightPressed = false;
 let leftPressed = false;
 let shootPressed = false;
-const rapidFireRate = 5; // Tembak 1 peluru setiap 5 frame (sangat cepat)
+const rapidFireRate = 5;
 
-// --- Penanganan Input Keyboard ---
+// Input keyboard
 document.addEventListener('keydown', (e) => {
-    const key = e.key.toLowerCase();
-    
-    // Gerak Kanan: ArrowRight atau D
-    if (key === 'right' || key === 'arrowright' || key === 'd') {
+    const key = e.key;
+
+    if (key === "ArrowRight" || key === "d" || key === "D") {
         rightPressed = true;
-    // Gerak Kiri: ArrowLeft atau A
-    } else if (key === 'left' || key === 'arrowleft' || key === 'a') {
+    }
+    if (key === "ArrowLeft" || key === "a" || key === "A") {
         leftPressed = true;
     }
-    
-    // Tembak: Spasi
-    if (key === ' ') { 
-        shootPressed = true; // Aktifkan rapid fire
+
+    // Perbaikan terbaru:
+    if (e.code === "Space") {
+        shootPressed = true;
     }
 });
 
 document.addEventListener('keyup', (e) => {
-    const key = e.key.toLowerCase();
+    const key = e.key;
 
-    // Hentikan Gerakan
-    if (key === 'right' || key === 'arrowright' || key === 'd') {
+    if (key === "ArrowRight" || key === "d" || key === "D") {
         rightPressed = false;
-    } else if (key === 'left' || key === 'arrowleft' || key === 'a') {
+    }
+    if (key === "ArrowLeft" || key === "a" || key === "A") {
         leftPressed = false;
     }
 
-    // Hentikan Tembakan
-    if (key === ' ') {
+    if (e.code === "Space") {
         shootPressed = false;
     }
 });
 
+// Update pemain
 function updatePlayer() {
     const halfWidth = player.width / 2;
-    
+
     if (rightPressed && player.x < canvas.width - halfWidth) {
         player.x += player.speed;
-    } else if (leftPressed && player.x > halfWidth) {
+    } 
+    if (leftPressed && player.x > halfWidth) {
         player.x -= player.speed;
     }
 }
 
-// --- Peluru (Bullets) ---
+// Peluru
 const bullets = [];
 
 function shoot() {
-    const bullet = {
+    bullets.push({
         x: player.x,
         y: player.y - player.height / 2,
         width: 4,
-        height: 10,
+        height: 14,
         speed: 12,
         color: 'red'
-    };
-    bullets.push(bullet);
+    });
 }
 
 function updateAndDrawBullets() {
     for (let i = 0; i < bullets.length; i++) {
-        const bullet = bullets[i];
-        bullet.y -= bullet.speed;
-        
-        ctx.fillStyle = bullet.color;
-        ctx.fillRect(bullet.x - bullet.width / 2, bullet.y, bullet.width, bullet.height);
-        
-        if (bullet.y < 0) {
+        const b = bullets[i];
+        b.y -= b.speed;
+
+        ctx.fillStyle = b.color;
+        ctx.fillRect(b.x - b.width / 2, b.y, b.width, b.height);
+
+        if (b.y < -20) {
             bullets.splice(i, 1);
             i--;
         }
     }
 }
 
-// --- Musuh (Enemies) ---
+// Musuh
 const enemies = [];
 const enemyWidth = 30;
 const enemyHeight = 30;
-const baseEnemySpeed = 1.5;
 
 function spawnEnemy() {
     const x = Math.random() * (canvas.width - enemyWidth) + enemyWidth / 2;
-    const enemy = {
-        x: x,
-        y: -enemyHeight, 
+
+    enemies.push({
+        x,
+        y: -enemyHeight,
         width: enemyWidth,
         height: enemyHeight,
-        speed: baseEnemySpeed,
+        speed: 2,
         color: 'green'
-    };
-    enemies.push(enemy);
+    });
 }
 
 function updateAndDrawEnemies() {
     for (let i = 0; i < enemies.length; i++) {
-        const enemy = enemies[i];
-        enemy.y += enemy.speed;
-        
-        ctx.fillStyle = enemy.color;
-        ctx.fillRect(enemy.x - enemy.width / 2, enemy.y, enemy.width, enemy.height);
-        
-        // Cek Musuh mengenai Pemain (Game Over condition)
-        if (enemy.y > canvas.height - enemy.height / 2) { 
-            handleEnemyHitPlayer(i); 
+        const e = enemies[i];
+        e.y += e.speed;
+
+        ctx.fillStyle = e.color;
+        ctx.fillRect(e.x - e.width / 2, e.y, e.width, e.height);
+
+        if (e.y > canvas.height - 40) {
+            handleEnemyHitPlayer(i);
             return;
         }
     }
 }
 
+// Musuh kena pemain
 function handleEnemyHitPlayer(enemyIndex) {
     enemies.splice(enemyIndex, 1);
 
     if (!player.invincible) {
         playerLives--;
-        livesElement.textContent = 'Lives: ' + playerLives;
+        livesElement.textContent = "Lives: " + playerLives;
 
         if (playerLives <= 0) {
-            alert('GAME OVER! Nyawa habis. Skor Akhir: ' + score);
-            document.location.reload(); 
-            return;
+            alert("GAME OVER! Skor: " + score);
+            location.reload();
         }
 
         player.invincible = true;
-        setTimeout(() => {
-            player.invincible = false;
-        }, 2000); 
+        setTimeout(() => player.invincible = false, 2000);
     }
 }
 
-// --- Deteksi Tabrakan dan Skor ---
+// Cek tabrakan
 function checkCollisions() {
     for (let i = 0; i < bullets.length; i++) {
         for (let j = 0; j < enemies.length; j++) {
-            const bullet = bullets[i];
-            const enemy = enemies[j];
+            const b = bullets[i];
+            const e = enemies[j];
 
-            if (bullet.x < enemy.x + enemy.width / 2 &&
-                bullet.x + bullet.width > enemy.x - enemy.width / 2 &&
-                bullet.y < enemy.y + enemy.height &&
-                bullet.y + bullet.height > enemy.y) {
-                
-                enemies.splice(j, 1);
+            if (
+                b.x < e.x + e.width / 2 &&
+                b.x + b.width > e.x - e.width / 2 &&
+                b.y < e.y + e.height &&
+                b.y + b.height > e.y
+            ) {
                 bullets.splice(i, 1);
-                
+                enemies.splice(j, 1);
+
                 score += 10;
-                scoreElement.textContent = 'Score: ' + score;
-                
+                scoreElement.textContent = "Score: " + score;
+
                 i--;
-                j--; 
-                break; 
+                break;
             }
         }
     }
 }
 
-
-// --- Loop Utama Game ---
+// Game loop
 function gameLoop() {
-    // 1. Bersihkan layar
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // 2. Tembakan Cepat (Rapid Fire)
     if (shootPressed && frames % rapidFireRate === 0) {
         shoot();
     }
 
-    // 3. Spawn Musuh (Sekarang musuh lebih banyak)
     frames++;
-    if (frames % enemySpawnRate === 0) { 
+    if (frames % enemySpawnRate === 0) {
         spawnEnemy();
     }
 
-    // 4. Perbarui posisi pemain dan cek tabrakan
     updatePlayer();
     checkCollisions();
 
-    // 5. Gambar semua objek
-    drawPlayer(); 
+    drawPlayer();
     updateAndDrawBullets();
     updateAndDrawEnemies();
-    
+
     requestAnimationFrame(gameLoop);
 }
 
-// Mulai Game!
 gameLoop();
